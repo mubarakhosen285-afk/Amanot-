@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <title>আমানত ও খরচ ট্র্যাকার | টগল ফর্ম</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', 'Roboto', 'Noto Sans Bengali', system-ui, sans-serif;
+    }
+    body {
+      background: #f1f5f9;
+      padding: 20px 14px 40px;
+      min-height: 100vh;
+    }
+    .app-container {
+      max-width: 550px;
+      margin: 0 auto;
+    }
+    .card {
+      background: white;
+      border-radius: 28px;
+      padding: 1.3rem;
+      margin-bottom: 1.2rem;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.03);
+      border: 1px solid #eef2ff;
+    }
+    .summary-row {
+      display: flex;
+      gap: 12px;
+      justify-content: space-between;
+      margin-bottom: 1.2rem;
+    }
+    .summary-item {
+      flex: 1;
+      background: white;
+      border-radius: 24px;
+      padding: 12px 6px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      border: 1px solid #e9edf2;
+    }
+    .summary-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #5b6e8c;
+      margin-bottom: 6px;
+    }
+    .summary-value {
+      font-size: 1.5rem;
+      font-weight: 800;
+    }
+    .deposit-val { color: #0f7b3a; }
+    .withdraw-val { color: #dc4a0e; }
+    .balance-val { color: #2563eb; }
+    .form-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #1e293b;
+    }
+    .input-group {
+      margin-bottom: 1rem;
+    }
+    .input-group label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+    .input-group input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 20px;
+      font-size: 0.95rem;
+      background: #ffffff;
+      transition: 0.2s;
+    }
+    .input-group input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+    }
+    .btn {
+      border: none;
+      color: white;
+      font-weight: 700;
+      padding: 12px 18px;
+      border-radius: 40px;
+      font-size: 0.9rem;
+      width: 100%;
+      cursor: pointer;
+      transition: 0.2s;
+      text-align: center;
+    }
+    .btn-primary { background: #0f7b3a; }
+    .btn-primary:active { transform: scale(0.97); background: #0b5e2e; }
+    .btn-warning { background: #ea580c; }
+    .btn-warning:active { transform: scale(0.97); }
+    .btn-outline {
+      background: #f1f5f9;
+      color: #1f2937;
+      border: 1px solid #cbd5e1;
+    }
+    .btn-toggle {
+      background: #3b82f6;
+      margin-bottom: 12px;
+    }
+    .flex-btns {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+      margin-bottom: 16px;
+    }
+    .form-collapsible {
+      display: none;
+      margin-top: 12px;
+    }
+    .form-collapsible.show {
+      display: block;
+    }
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 32px;
+      max-width: 500px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+      padding: 1.4rem;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    .close-modal {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    .transaction-item {
+      background: #fafcff;
+      border-radius: 20px;
+      padding: 12px;
+      margin-bottom: 10px;
+      border-left: 4px solid;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .deposit-item { border-left-color: #10b981; }
+    .withdraw-item { border-left-color: #f97316; }
+    .item-info { flex: 2; }
+    .item-name { font-weight: 700; font-size: 0.95rem; }
+    .item-date { font-size: 0.65rem; color: #6c757d; margin-top: 4px; }
+    .item-amount { font-weight: 800; font-size: 1rem; }
+    .delete-icon {
+      background: transparent;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 6px 8px;
+      border-radius: 40px;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 28px 12px;
+      color: #8a99b0;
+      font-size: 0.85rem;
+    }
+    @media print {
+      body * { visibility: hidden; }
+      .print-area, .print-area * { visibility: visible; }
+      .print-area { position: absolute; top: 0; left: 0; width: 100%; padding: 20px; }
+      .no-print { display: none; }
+    }
+    .feedback {
+      font-size: 0.7rem;
+      margin-top: 6px;
+    }
+    .success { color: #0f7b3a; }
+    .error { color: #dc2626; }
+  </style>
+</head>
+<body>
+   <div>
+       <h2>  আমানত এর হিসাব</h2>
+   </div>
+<div class="app-container">
+  <!-- সারাংশ রো -->
+  <div class="summary-row">
+    <div class="summary-item">
+      <div class="summary-label">📥 মোট আমানত</div>
+      <div class="summary-value deposit-val" id="totalDepositAmount">৳ 0</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">📤 মোট নেওয়া</div>
+      <div class="summary-value withdraw-val" id="totalWithdrawAmount">৳ 0</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">⚖️ বর্তমান ব্যালেন্স</div>
+      <div class="summary-value balance-val" id="totalBalanceAmount">৳ 0</div>
+    </div>
+  </div>
+
+  <!-- টগল বাটন ও ফর্ম: আমানত জমা -->
+  <div class="card">
+    <button class="btn btn-toggle" id="toggleDepositBtn">💰 আমানত জমা দিন (খুলুন/বন্ধ)</button>
+    <div id="depositFormContainer" class="form-collapsible">
+      <div class="form-title">আমানতের তথ্য দিন</div>
+      <div class="input-group">
+        <label>🧑 আমানতদারের নাম</label>
+        <input type="text" id="depositorName" placeholder="যেমন: রহিম, করিম" autocomplete="off">
+      </div>
+      <div class="input-group">
+        <label>📅 জমার তারিখ</label>
+        <input type="date" id="depositDate">
+      </div>
+      <div class="input-group">
+        <label>💵 টাকার পরিমাণ</label>
+        <input type="number" id="depositAmount" placeholder="যেমন 5000" step="any" min="0.01">
+      </div>
+      <button class="btn btn-primary" id="addDepositBtn">✅ জমা সংরক্ষণ করুন</button>
+      <div id="depositFeedback" class="feedback"></div>
+    </div>
+  </div>
+
+  <!-- টগল বাটন ও ফর্ম: খরচ / কে নিল -->
+  <div class="card">
+    <button class="btn btn-toggle" id="toggleExpenseBtn">📉 খরচ লিখুন (খুলুন/বন্ধ)</button>
+    <div id="expenseFormContainer" class="form-collapsible">
+      <div class="form-title">খরচ / নেওয়ার তথ্য দিন</div>
+      <div class="input-group">
+        <label>👤 নাম (কে নিল)</label>
+        <input type="text" id="withdrawPerson" placeholder="যেমন: রাহিম, বাজার খরচ" autocomplete="off">
+      </div>
+      <div class="input-group">
+        <label>📅 তারিখ</label>
+        <input type="date" id="withdrawDate">
+      </div>
+      <div class="input-group">
+        <label>💸 পরিমাণ (টাকা)</label>
+        <input type="number" id="withdrawAmount" placeholder="যেমন 1200" step="any" min="0.01">
+      </div>
+      <button class="btn btn-warning" id="addWithdrawBtn">✖️ নেওয়া যোগ করুন</button>
+      <div id="withdrawFeedback" class="feedback"></div>
+    </div>
+  </div>
+
+  <!-- তিনটি বাটন: ইতিহাস ও প্রিন্ট -->
+  <div class="flex-btns">
+    <button class="btn btn-outline" id="showDepositHistoryBtn">📜 আমানতের ইতিহাস</button>
+    <button class="btn btn-outline" id="showWithdrawHistoryBtn">📋 নেয়ার ইতিহাস</button>
+    <button class="btn btn-outline" id="printAllDataBtn">🖨️ প্রিন্ট</button>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // ---------- ডাটা ----------
+    let deposits = [];     // { id, name, date, amount }
+    let withdrawals = [];  // { id, personName, date, amount }
+
+    // DOM elements
+    const depositorName = document.getElementById('depositorName');
+    const depositDate = document.getElementById('depositDate');
+    const depositAmount = document.getElementById('depositAmount');
+    const addDepositBtn = document.getElementById('addDepositBtn');
+    const depositFeedback = document.getElementById('depositFeedback');
+
+    const withdrawPerson = document.getElementById('withdrawPerson');
+    const withdrawDate = document.getElementById('withdrawDate');
+    const withdrawAmount = document.getElementById('withdrawAmount');
+    const addWithdrawBtn = document.getElementById('addWithdrawBtn');
+    const withdrawFeedback = document.getElementById('withdrawFeedback');
+
+    const totalDepositSpan = document.getElementById('totalDepositAmount');
+    const totalWithdrawSpan = document.getElementById('totalWithdrawAmount');
+    const totalBalanceSpan = document.getElementById('totalBalanceAmount');
+
+    // টগল এলিমেন্ট
+    const depositFormContainer = document.getElementById('depositFormContainer');
+    const expenseFormContainer = document.getElementById('expenseFormContainer');
+    const toggleDepositBtn = document.getElementById('toggleDepositBtn');
+    const toggleExpenseBtn = document.getElementById('toggleExpenseBtn');
+
+    // টগল ফাংশন
+    toggleDepositBtn.addEventListener('click', () => {
+      depositFormContainer.classList.toggle('show');
+    });
+    toggleExpenseBtn.addEventListener('click', () => {
+      expenseFormContainer.classList.toggle('show');
+    });
+
+    // helper: current balance
+    function getCurrentBalance() {
+      const totalDeposit = deposits.reduce((sum, d) => sum + d.amount, 0);
+      const totalWithdraw = withdrawals.reduce((sum, w) => sum + w.amount, 0);
+      return totalDeposit - totalWithdraw;
+    }
+
+    // set default dates
+    function setDefaultDates() {
+      const today = new Date().toISOString().slice(0,10);
+      if (!depositDate.value) depositDate.value = today;
+      if (!withdrawDate.value) withdrawDate.value = today;
+    }
+
+    // localStorage
+    function loadFromStorage() {
+      const storedDeposits = localStorage.getItem('deposit_app_deposits_final_v4');
+      const storedWithdraws = localStorage.getItem('deposit_app_withdraws_final_v4');
+      if (storedDeposits) {
+        try { deposits = JSON.parse(storedDeposits); } catch(e) { deposits = []; }
+      } else { deposits = []; }
+      if (storedWithdraws) {
+        try { withdrawals = JSON.parse(storedWithdraws); } catch(e) { withdrawals = []; }
+      } else { withdrawals = []; }
+      if (!Array.isArray(deposits)) deposits = [];
+      if (!Array.isArray(withdrawals)) withdrawals = [];
+    }
+
+    function saveToStorage() {
+      localStorage.setItem('deposit_app_deposits_final_v4', JSON.stringify(deposits));
+      localStorage.setItem('deposit_app_withdraws_final_v4', JSON.stringify(withdrawals));
+    }
+
+    // update summary
+    function updateSummary() {
+      const totalDeposit = deposits.reduce((sum, d) => sum + d.amount, 0);
+      const totalWithdraw = withdrawals.reduce((sum, w) => sum + w.amount, 0);
+      totalDepositSpan.innerText = `৳ ${totalDeposit.toFixed(2)}`;
+      totalWithdrawSpan.innerText = `৳ ${totalWithdraw.toFixed(2)}`;
+      totalBalanceSpan.innerText = `৳ ${(totalDeposit - totalWithdraw).toFixed(2)}`;
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return dateStr;
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+      });
+    }
+
+    // আমানতের ইতিহাস মোডাল
+    function showDepositHistory() {
+      if (deposits.length === 0) {
+        alert('📭 কোনো আমানত রেকর্ড নেই।');
+        return;
+      }
+      const sorted = [...deposits].sort((a, b) => (a.date > b.date ? -1 : (a.date < b.date ? 1 : b.id - a.id)));
+      let modalHtml = `
+        <div class="modal-overlay" id="historyModal">
+          <div class="modal-content">
+            <div class="modal-header">
+              <strong>📜 আমানতের ইতিহাস (যিনি জমা রেখেছেন)</strong>
+              <button class="close-modal" id="closeModalBtn">&times;</button>
+            </div>
+            <div style="max-height: 60vh; overflow-y: auto;">
+      `;
+      for (let d of sorted) {
+        modalHtml += `
+          <div class="transaction-item deposit-item" style="margin-bottom: 12px;">
+            <div class="item-info">
+              <div class="item-name">🧑 ${escapeHtml(d.name)}</div>
+              <div class="item-date">📅 ${formatDate(d.date)}</div>
+            </div>
+            <div class="item-amount" style="color:#0f7b3a;">+ ৳ ${d.amount.toFixed(2)}</div>
+            <button class="delete-icon delete-deposit-modal" data-id="${d.id}">🗑️</button>
+          </div>
+        `;
+      }
+      modalHtml += `</div><div style="margin-top:16px;"><button class="btn btn-sm" id="modalCloseFooter">বন্ধ করুন</button></div></div></div>`;
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+      const modal = document.getElementById('historyModal');
+      document.querySelectorAll('.delete-deposit-modal').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = parseInt(btn.getAttribute('data-id'));
+          if (confirm('এই আমানত রেকর্ড মুছবেন?')) {
+            deposits = deposits.filter(d => d.id !== id);
+            saveToStorage();
+            renderAll();
+            modal.remove();
+            showDepositHistory();
+          }
+        });
+      });
+      const closeModal = () => modal.remove();
+      document.getElementById('closeModalBtn')?.addEventListener('click', closeModal);
+      document.getElementById('modalCloseFooter')?.addEventListener('click', closeModal);
+      modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    }
+
+    // নেয়ার ইতিহাস মোডাল
+    function showWithdrawHistory() {
+      if (withdrawals.length === 0) {
+        alert('📭 কোনো নেওয়ার রেকর্ড নেই।');
+        return;
+      }
+      const sorted = [...withdrawals].sort((a, b) => (a.date > b.date ? -1 : (a.date < b.date ? 1 : b.id - a.id)));
+      let modalHtml = `
+        <div class="modal-overlay" id="withdrawHistoryModal">
+          <div class="modal-content">
+            <div class="modal-header">
+              <strong>📋 নেয়ার ইতিহাস (কে, কত, কখন)</strong>
+              <button class="close-modal" id="closeWithdrawModalBtn">&times;</button>
+            </div>
+            <div style="max-height: 60vh; overflow-y: auto;">
+      `;
+      for (let w of sorted) {
+        modalHtml += `
+          <div class="transaction-item withdraw-item" style="margin-bottom: 12px;">
+            <div class="item-info">
+              <div class="item-name">🧑 ${escapeHtml(w.personName)}</div>
+              <div class="item-date">📅 ${formatDate(w.date)}</div>
+            </div>
+            <div class="item-amount" style="color:#dc4a0e;">- ৳ ${w.amount.toFixed(2)}</div>
+            <button class="delete-icon delete-withdraw-modal" data-id="${w.id}">🗑️</button>
+          </div>
+        `;
+      }
+      modalHtml += `</div><div style="margin-top:16px;"><button class="btn btn-sm" id="modalCloseFooterWithdraw">বন্ধ করুন</button></div></div></div>`;
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+      const modal = document.getElementById('withdrawHistoryModal');
+      document.querySelectorAll('.delete-withdraw-modal').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = parseInt(btn.getAttribute('data-id'));
+          if (confirm('এই নেওয়ার রেকর্ড মুছবেন?')) {
+            withdrawals = withdrawals.filter(w => w.id !== id);
+            saveToStorage();
+            renderAll();
+            modal.remove();
+            showWithdrawHistory();
+          }
+        });
+      });
+      const closeModal = () => modal.remove();
+      document.getElementById('closeWithdrawModalBtn')?.addEventListener('click', closeModal);
+      document.getElementById('modalCloseFooterWithdraw')?.addEventListener('click', closeModal);
+      modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    }
+
+    // প্রিন্ট
+    function printAllData() {
+      const totalDeposit = deposits.reduce((s, d) => s + d.amount, 0);
+      const totalWithdraw = withdrawals.reduce((s, w) => s + w.amount, 0);
+      const balance = totalDeposit - totalWithdraw;
+      let printContent = `
+        <div class="print-area" style="font-family: system-ui; padding: 20px;">
+          <h2 style="text-align:center;">📋 সম্পূর্ণ হিসাব প্রতিবেদন</h2>
+          <hr/>
+          <p><strong>মোট আমানত:</strong> ৳ ${totalDeposit.toFixed(2)}</p>
+          <p><strong>মোট নেওয়া:</strong> ৳ ${totalWithdraw.toFixed(2)}</p>
+          <p><strong>বর্তমান ব্যালেন্স:</strong> ৳ ${balance.toFixed(2)}</p>
+          <hr/>
+          <h3>📥 আমানতের তালিকা</h3>
+      `;
+      if (deposits.length === 0) printContent += '<p>কোনো আমানত নেই</p>';
+      else {
+        printContent += `<table border="1" cellpadding="6" style="border-collapse:collapse; width:100%;"><tr><th>নাম</th><th>তারিখ</th><th>পরিমাণ</th></tr>`;
+        deposits.forEach(d => {
+          printContent += `<tr><td>${escapeHtml(d.name)}</td><td>${formatDate(d.date)}</td><td>৳ ${d.amount.toFixed(2)}</td></tr>`;
+        });
+        printContent += `</table>`;
+      }
+      printContent += `<hr/><h3>📤 নেওয়ার তালিকা</h3>`;
+      if (withdrawals.length === 0) printContent += '<p>কোনো নেওয়ার রেকর্ড নেই</p>';
+      else {
+        printContent += `<table border="1" cellpadding="6" style="border-collapse:collapse; width:100%;"><tr><th>নাম</th><th>তারিখ</th><th>পরিমাণ</th></tr>`;
+        withdrawals.forEach(w => {
+          printContent += `<tr><td>${escapeHtml(w.personName)}</td><td>${formatDate(w.date)}</td><td>৳ ${w.amount.toFixed(2)}</td></tr>`;
+        });
+        printContent += ` licensierad`;
+      }
+      printContent += `<hr/><footer style="text-align:center;">প্রিন্ট তারিখ: ${new Date().toLocaleString()}</footer></div>`;
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <html><head><title>আমানত ও নেওয়ার রিপোর্ট</title>
+        <style>body{font-family:sans-serif; padding:20px;} table{border-collapse:collapse; width:100%} th,td{border:1px solid #ccc; padding:8px}</style>
+        </head><body>${printContent}</body></html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
+
+    // জমা যোগ
+    function addDeposit() {
+      depositFeedback.innerHTML = '';
+      const name = depositorName.value.trim();
+      const date = depositDate.value;
+      const amountRaw = depositAmount.value;
+
+      if (!name) { depositFeedback.innerHTML = '<span class="error">❌ আমানতদারের নাম লিখুন</span>'; return; }
+      if (!date) { depositFeedback.innerHTML = '<span class="error">❌ তারিখ নির্বাচন করুন</span>'; return; }
+      if (!amountRaw || amountRaw === '') { depositFeedback.innerHTML = '<span class="error">❌ টাকার পরিমাণ লিখুন</span>'; return; }
+      const amount = parseFloat(amountRaw);
+      if (isNaN(amount) || amount <= 0) { depositFeedback.innerHTML = '<span class="error">❌ সঠিক পরিমাণ দিন (০ এর বেশি)</span>'; return; }
+
+      const newDeposit = { id: Date.now(), name, date, amount };
+      deposits.push(newDeposit);
+      depositorName.value = '';
+      depositAmount.value = '';
+      depositDate.value = new Date().toISOString().slice(0,10);
+      depositFeedback.innerHTML = '<span class="success">✅ জমা সফলভাবে যুক্ত হয়েছে!</span>';
+      setTimeout(() => { depositFeedback.innerHTML = ''; }, 2000);
+      saveToStorage();
+      renderAll();
+    }
+
+    // নেওয়া যোগ (ব্যালেন্স চেক সহ)
+    function addWithdraw() {
+      withdrawFeedback.innerHTML = '';
+      const person = withdrawPerson.value.trim();
+      const date = withdrawDate.value;
+      const amountRaw = withdrawAmount.value;
+
+      if (!person) { withdrawFeedback.innerHTML = '<span class="error">❌ নাম লিখুন (কে নিল)</span>'; return; }
+      if (!date) { withdrawFeedback.innerHTML = '<span class="error">❌ তারিখ নির্বাচন করুন</span>'; return; }
+      if (!amountRaw || amountRaw === '') { withdrawFeedback.innerHTML = '<span class="error">❌ পরিমাণ লিখুন</span>'; return; }
+      const amount = parseFloat(amountRaw);
+      if (isNaN(amount) || amount <= 0) { withdrawFeedback.innerHTML = '<span class="error">❌ সঠিক পরিমাণ দিন (০ এর বেশি)</span>'; return; }
+
+      const currentBalance = getCurrentBalance();
+      if (amount > currentBalance) {
+        alert(`⚠️ আপনার ব্যালেন্স কম! \nবর্তমান ব্যালেন্স: ৳ ${currentBalance.toFixed(2)}\nনেওয়ার চেষ্টা: ৳ ${amount.toFixed(2)}\nসুতরাং এই লেনদেন সম্ভব নয়।`);
+        withdrawFeedback.innerHTML = '<span class="error">❌ ব্যালেন্স অপর্যাপ্ত, লেনদেন হয়নি।</span>';
+        setTimeout(() => { withdrawFeedback.innerHTML = ''; }, 2000);
+        return;
+      }
+
+      const newWithdraw = { id: Date.now(), personName: person, date, amount };
+      withdrawals.push(newWithdraw);
+      withdrawPerson.value = '';
+      withdrawAmount.value = '';
+      withdrawDate.value = new Date().toISOString().slice(0,10);
+      withdrawFeedback.innerHTML = '<span class="success">✅ নেওয়া রেকর্ড যুক্ত হয়েছে!</span>';
+      setTimeout(() => { withdrawFeedback.innerHTML = ''; }, 2000);
+      saveToStorage();
+      renderAll();
+    }
+
+    function renderAll() {
+      updateSummary();
+    }
+
+    function init() {
+      setDefaultDates();
+      loadFromStorage();
+      renderAll();
+
+      addDepositBtn.addEventListener('click', addDeposit);
+      addWithdrawBtn.addEventListener('click', addWithdraw);
+      document.getElementById('showDepositHistoryBtn').addEventListener('click', showDepositHistory);
+      document.getElementById('showWithdrawHistoryBtn').addEventListener('click', showWithdrawHistory);
+      document.getElementById('printAllDataBtn').addEventListener('click', printAllData);
+    }
+
+    init();
+  })();
+</script>
+</body>
+</html>
